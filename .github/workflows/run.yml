@@ -65,4 +65,15 @@ jobs:
       # =========================
       - name: Run Selenium
         run: |
-          java -cp ".:libs/*" Main
+          mkdir -p results
+          java -cp ".:libs/*" Main > results/execution.log 2>&1
+
+      # =========================
+      # 7. Upload Results
+      # =========================
+      - name: Upload Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: execution-results
+          path: results/
