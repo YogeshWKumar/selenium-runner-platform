@@ -1,42 +1,65 @@
-name: Selenium MVP Runner
+name: Stable Selenium Runner
 
 on:
   workflow_dispatch:
     inputs:
       code:
         required: true
-        description: "Java Selenium Code"
 
 jobs:
-  run:
+  run-selenium:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      # =========================
+      # 1. Checkout repo
+      # =========================
+      - uses: actions/checkout@v4
 
+      # =========================
+      # 2. Install Java
+      # =========================
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
 
-      - name: Install Chrome
+      # =========================
+      # 3. Install Chrome
+      # =========================
+      - name: Install Google Chrome
         run: |
           sudo apt-get update
-          sudo apt-get install -y google-chrome-stable || true
+          sudo apt-get install -y wget unzip
+          wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+          sudo apt install -y ./google-chrome-stable_current_amd64.deb
 
-      - name: Write Java file
+      # =========================
+      # 4. Download Selenium JAR (stable)
+      # =========================
+      - name: Download Selenium
         run: |
-          cat << 'EOF' > Main.java
-          ${{ github.event.inputs.code }}
-          EOF
+          mkdir libs
+          curl -L -o libs/selenium.jar https://repo1.maven.org/maven2/org/seleniumhq/selenium/selenium-java/4.20.0/selenium-java-4.20.0.jar
 
-      - name: Compile Java
-        run: javac Main.java
+      # =========================
+      # 5. Write Java file
+      # =========================
+      - name: Write Java Code
+        run: |
+          echo "${{ github.event.inputs.code }}" > Main.java
 
-      - name: Run Selenium / Java
-        run: java Main | tee output.txt
+      # =========================
+      # 6. Compile
+      # =========================
+      - name: Compile
+        run: |
+          javac -cp "libs/*" Main.java
 
-      - name: Show Output
-        run: cat output.txt
+      # =========================
+      # 7. Run
+      # =========================
+      - name: Run Selenium
+        run: |
+          java -cp ".:libs/*" Main
