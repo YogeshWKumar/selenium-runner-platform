@@ -46,10 +46,12 @@ jobs:
       # =========================
       # 5. Write Java file
       # =========================
-      - name: Write Java Code
+      - name: Write Java Code safely
         run: |
-          echo "${{ github.event.inputs.code }}" > Main.java
-
+          cat << 'EOF' > Main.java
+          ${{ github.event.inputs.code }}
+          EOF
+          
       # =========================
       # 6. Compile
       # =========================
